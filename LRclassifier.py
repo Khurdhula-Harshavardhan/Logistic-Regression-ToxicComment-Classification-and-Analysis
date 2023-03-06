@@ -2,6 +2,7 @@ import pandas as pd
 import joblib
 from sklearn.linear_model import LogisticRegression
 import re
+from sklearn.feature_extraction.text import TfidfVectorizer
 
 class LRclassifier():
     """
@@ -53,7 +54,15 @@ class LRclassifier():
         except Exception as e:
             print("[ERR] The following error occured while tryig to normalize the data_frame: "+str(e))
 
-
+    def create_word_embeddings(self) -> None:
+        """
+        Creates feature vectors for our LR model.
+        """
+        try:
+            print("[PROCESS] Creating Feature vectors for the data, please wait this might take some time.")
+            
+        except Exception as e:
+            print("[ERR] The following error occured while trying to create feature vectors: "+str(e))
     def train_LR_model(self, path_to_train_file = "./datasets/train.csv") -> LogisticRegression():
         """
         This method trains a LR model with the training data provided and returns a LR model fitted for the same.
