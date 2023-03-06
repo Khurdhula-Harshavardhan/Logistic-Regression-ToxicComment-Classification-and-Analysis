@@ -3,6 +3,10 @@ import joblib
 from sklearn.linear_model import LogisticRegression
 import re
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.model_selection import train_test_split
+import numpy as np
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import precision_recall_fscore_support
 
 class LRclassifier():
     """
@@ -15,6 +19,7 @@ class LRclassifier():
     X_train = None
     X_test = None
     X_vectorized = None
+    y_train = None
     y_test = None
     model = None
     threshold = None
@@ -101,13 +106,54 @@ class LRclassifier():
             print("[INFO] Created a new instance of Logistic Regression Class.")
             print("[INFO] Defining the Threshold to be: 0.3 Manually.")
             self.threshold = 0.3
-
+            print("[PROCESS] Splitting this data, inorder get model metrics!")
+            self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.4, random_state=42)
             print("[PROCESS] Training LRmodel, please wait this might take some time.")
-            self.model = self.model.fit()
+            self.model = self.model.fit(self.X_train, self.y_train)
+            print("[INFO] Model has been trained Successfully, returning the instance of this model!")
+            return self.model
         except Exception as e:
             print("[ERR] The following error occured while trying to train a LR model: "+str(e))
+    
+    def traditional_test(self, model) -> float():
+        """
+        This method tests the trained model on split data and returns the accuracy score of the model.
+        The split will be based on vectorizated Trained X as well.
+        """
+        try:
+            predictions = model.predict_proba(self.X_test)[:, 1]
+            predictions = np.where(predictions >= self.threshold, 1, 0)
+            _accuracy = accuracy_score(predictions, self.y_test)
+            _precision, _recall, _F1_score, _ = precision_recall_fscore_support(self.y_test, predictions, average='binary')
+            print("-"*50)
+            print("[INFO] Here are the LRmodel metrics: ")
+            print("[METRIC] Accuracy Score: %f"%(_accuracy))
+            print("[METRIC] Precision: %f"%(_precision))
+            print("[METRIC] F1-Score: %f"%(_F1_score))
+            print("[METRIC] Recall: %f"%(_recall))
+            # plot_confusion_matrix(self.y_test, predictions, labels=["Not Toxic", "Is Toxic"])
+            # plot_roc_curve(self.y_test,predictions)
+            
+        except Exception as e:
+            joblib.dump(model,"LRclassifier.joblib")
+            print("[ERR] The following error occured while trying to test the model for accuracy! "+str(e))
 
+    def test_LR_model(self, path_to_test_file= "./datasets/test.csv", LRmodel=None) -> None:
+        """
+        This method, is used to test the model and yield outputs for the provided testset.
+        This method must also yield the metrics, that are statistics computation which quantify the model's performance.
+        """
+        try:
+            if LRmodel is None: #check if a model has been given as input else throw an exception asking for one.
+                raise Exception("No Logisitic Regression model has been passed to the test method, please provide the appropriate parameters.")
+            
+            print("[INFO] Analyzing the model metrics please wait.")
+            self.traditional_test(LRmodel) #Aquire model metrics.
+
+        except Exception as e:
+            print("[ERR] The following error while trying to perform test on the LRmodel: "+str(e))
 
 
 obj = LRclassifier()
-obj.train_LR_model()
+LR_model = obj.train_LR_model()
+obj.test_LR_model(LRmodel = LR_model)
