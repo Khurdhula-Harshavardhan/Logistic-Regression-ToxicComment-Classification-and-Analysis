@@ -17,6 +17,7 @@ class LRclassifier():
     X_vectorized = None
     y_test = None
     model = None
+    threshold = None
     def __init__(self) -> None:
         """
         set up variables.
@@ -94,8 +95,15 @@ class LRclassifier():
             self.read_file(path_to_train_file) #reads the file and extracts relevant information.
             self.normalize() #normalize the data
             self.create_word_embeddings() #create the feature vectors.
-            
+            print("[PROCESS] Creating a new instance of Logistic Regression.")
+            print("[INFO] Extending the max iterations to 1000 from 100 to this instance.")
+            self.model = LogisticRegression(max_iter=1000)
             print("[INFO] Created a new instance of Logistic Regression Class.")
+            print("[INFO] Defining the Threshold to be: 0.3 Manually.")
+            self.threshold = 0.3
+
+            print("[PROCESS] Training LRmodel, please wait this might take some time.")
+            self.model = self.model.fit()
         except Exception as e:
             print("[ERR] The following error occured while trying to train a LR model: "+str(e))
 
