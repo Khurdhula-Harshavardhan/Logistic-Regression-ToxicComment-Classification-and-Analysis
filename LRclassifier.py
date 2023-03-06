@@ -1,6 +1,7 @@
 import pandas as pd
 import joblib
 from sklearn.linear_model import LogisticRegression
+import re
 
 class LRclassifier():
     """
@@ -22,13 +23,33 @@ class LRclassifier():
         except Exception as e:
             print("[ERR] The following error occured while trying to read the Train csv file: "+str(e))
 
+    def normalize_single_comment(self,comment) -> str:
+        """
+        This method normalizes an individual instance of comment.
+        """
+        try:
+            if comment is None: #check if a comment is None.
+                return None
+            comment = comment.lower() #lower it's case for case consistency.
+            comment = re.sub("'", "", comment) #convert words like can't to cant, didn't to didnt
+            comment = " ".join(re.findall("[a-z]+", comment)) #capture only text data.
+
+            if len(comment.strip(" ")) == 0 or len(comment.rstrip()) == 0: #check if above steps produce an empty string.
+                return None
+            else:
+                return comment #if all goes right return a string.
+        except Exception as e:
+            print("[ERR] The following error occured while trying normalize a particular comment: "+str(e))
+    
     def normalize(self) -> None:
         """
         normalize method normalizes the previously extracted relevant information.
         """
         try:
             print("[PROCESS] Normalizing the comment_text, from the data frame.")
-            pass
+            self.data_frame["comment_text"] = self.data_frame["comment_text"].apply(self.normalize_single_comment)
+            #print(self.data_frame)
+            print("[INFO] Normalized the data successfully!")
         except Exception as e:
             print("[ERR] The following error occured while tryig to normalize the data_frame: "+str(e))
 
@@ -39,6 +60,7 @@ class LRclassifier():
         """
         try:
             self.read_file(path_to_train_file) #reads the file and extracts relevant information.
+            self.normalize()
         except Exception as e:
             print("[ERR] The following error occured while trying to train a LR model: "+str(e))
 
