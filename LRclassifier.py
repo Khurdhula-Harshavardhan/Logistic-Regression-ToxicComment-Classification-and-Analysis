@@ -9,8 +9,19 @@ class LRclassifier():
     Creates and Tests a Classifier to check if a comment made by user is toxic.
     """
     data_frame = None
+    vectorizer = None
+    X = None
+    y = None
+    X_train = None
+    X_test = None
+    X_vectorized = None
+    y_test = None
+    model = None
     def __init__(self) -> None:
-        pass
+        """
+        set up variables.
+        """
+        self.vectorizer = TfidfVectorizer()
 
     def read_file(self, file):
         """
@@ -60,16 +71,31 @@ class LRclassifier():
         """
         try:
             print("[PROCESS] Creating Feature vectors for the data, please wait this might take some time.")
+            toxicData = self.data_frame.loc[self.data_frame["toxic"] == 1]
+            print("[INFO] Extracted toxic comments.")
+
+            nontoxicData = self.data_frame.loc[self.data_frame["toxic"] == 0][:60000]
+            print("[INFO] Extracted 60,000 nontoxic comments.")
             
+            self.data_frame = pd.concat([toxicData, nontoxicData])
+            x_sample = [ str(x) for x in self.data_frame["comment_text"]]
+            self.y= self.data_frame["toxic"]
+            print("[PROCESS] Transforming the comments into Feature Vectors please wait this migth take time!")
+            self.X = self.vectorizer.fit_transform(x_sample)
+            print("[INFO] Feature Vectors created successfully!")
         except Exception as e:
             print("[ERR] The following error occured while trying to create feature vectors: "+str(e))
+
     def train_LR_model(self, path_to_train_file = "./datasets/train.csv") -> LogisticRegression():
         """
         This method trains a LR model with the training data provided and returns a LR model fitted for the same.
         """
         try:
             self.read_file(path_to_train_file) #reads the file and extracts relevant information.
-            self.normalize()
+            self.normalize() #normalize the data
+            self.create_word_embeddings() #create the feature vectors.
+            
+            print("[INFO] Created a new instance of Logistic Regression Class.")
         except Exception as e:
             print("[ERR] The following error occured while trying to train a LR model: "+str(e))
 
